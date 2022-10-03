@@ -58,6 +58,8 @@ import Discord;
 
 using StringTools;
 
+typedef LUA_TFUNCTION = Null<Int>;
+
 class FunkinLua {
 	public static var Function_Stop:Dynamic = 1;
 	public static var Function_Continue:Dynamic = 0;
@@ -1088,13 +1090,19 @@ class FunkinLua {
 		});
 
 		// gay ass tweens
-		Lua_helper.add_callback(lua, "doTween", function(tag:String, variable:String, fieldsNValues:Dynamic, duration:Float, ease:String) {
+		Lua_helper.add_callback(lua, "doTween", function(tag:String, variable:String, fieldsNValues:Dynamic, duration:Float, ease:String, onComplete:LUA_TFUNCTION) {
 			var penisExam:Dynamic = tweenShit(tag, variable);
 			if(penisExam != null) {
 				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, fieldsNValues, duration, {ease: getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);
+						if (onComplete != null) {
+							Lua.rawgeti(lua, Lua.LUA_REGISTRYINDEX, onComplete);
+							if (Lua.isfunction(lua, -1)) Lua.call(lua, 0, 0);
+							LuaL.unref(lua, Lua.LUA_REGISTRYINDEX, onComplete);
+							//Lua.remove(lua, -1);
+						}
 					}
 				}));
 			}else{
